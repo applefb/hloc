@@ -50,7 +50,7 @@ def scale_sfm_images(full_model, scaled_model, image_dir):
 
 
 def create_query_list_with_intrinsics(
-    model, out, list_file=None, ext=".bin", image_dir=None
+        model, out, list_file=None, ext=".bin", image_dir=None
 ):
     """Create a list of query images with intrinsics from the colmap model."""
     if ext == ".bin":
@@ -90,9 +90,8 @@ def create_query_list_with_intrinsics(
         f.write("\n".join(data))
 
 
-
 def create_query_list_with_fixed_intrinsics(
-    model, out, list_file=None, ext=".bin", image_dir=None
+        model, out, list_file=None, ext=".bin", image_dir=None
 ):
     """Create a list of query images with intrinsics from the colmap model."""
     if ext == ".bin":
@@ -103,7 +102,7 @@ def create_query_list_with_fixed_intrinsics(
         cameras = read_cameras_text(model / "cameras.txt")
 
     name2id = {image.name: i for i, image in images.items()}
-    print('create_query_list_with_fixed_intrinsics      name2id   ============              ',name2id)
+    print('create_query_list_with_fixed_intrinsics      name2id   ============              ', name2id)
     if list_file is None:
         names = list(name2id)
     else:
@@ -134,7 +133,7 @@ def create_query_list_with_fixed_intrinsics(
 
 
 def create_query_list_with_fixed_intrinsics_use_imagedir(
-    model, out, list_file=None, ext=".bin", image_dir=None
+        model, out, list_file=None, ext=".bin", image_dir=None
 ):
     import os
     import glob
@@ -147,14 +146,14 @@ def create_query_list_with_fixed_intrinsics_use_imagedir(
         cameras = read_cameras_text(model / "cameras.txt")
 
     name2id = {image.name: i for i, image in images.items()}
-    print('create_query_list_with_fixed_intrinsics      name2id   ============              ',name2id)
+    print('create_query_list_with_fixed_intrinsics      name2id   ============              ', name2id)
     if image_dir is not None:
         # 检查目录是否存在
         if not os.path.exists(image_dir):
             print(f"目录 '{image_dir}' 不存在")
             names = []
         else:
-        # 使用 glob 模块匹配目录下的所有图片文件
+            # 使用 glob 模块匹配目录下的所有图片文件
             image_filenames = glob.glob(os.path.join(image_dir, '*.jpg'))  # 假设你只想获取 jpg 格式的图片文件，可根据需求修改
             # 获取文件名部分
             names = [os.path.basename(file) for file in image_filenames]
@@ -183,9 +182,8 @@ def create_query_list_with_fixed_intrinsics_use_imagedir(
     return camera
 
 
-
 def create_query_list_with_fixed_intrinsics_one_image(
-    model, out, list_file=None, ext=".bin"
+        model, out, list_file=None, ext=".bin"
 ):
     import os
     import glob
@@ -198,7 +196,7 @@ def create_query_list_with_fixed_intrinsics_one_image(
         cameras = read_cameras_text(model / "cameras.txt")
 
     name2id = {image.name: i for i, image in images.items()}
-    print('create_query_list_with_fixed_intrinsics      name2id   ============              ',name2id)
+    print('create_query_list_with_fixed_intrinsics      name2id   ============              ', name2id)
 
     data = []
     for name in list_file:
@@ -225,17 +223,14 @@ def create_query_list_with_fixed_intrinsics_one_image(
     return camera
 
 
-
 def create_query_list_with_another_intrinsics_one_image(
-    camera, out, list_file=None
+        camera, out, list_file=None
 ):
     import os
     import glob
     """Create a list of query images with intrinsics from the colmap model."""
     data = []
     for name in list_file:
-
-
         w, h, params = camera.width, camera.height, camera.params
 
         # if image_dir is not None:
@@ -255,6 +250,7 @@ def create_query_list_with_another_intrinsics_one_image(
     with open(out, "w") as f:
         f.write("\n".join(data))
     return camera
+
 
 def evaluate(model, results, list_file=None, ext=".bin", only_localized=False):
     predictions = {}
@@ -307,5 +303,5 @@ def evaluate(model, results, list_file=None, ext=".bin", only_localized=False):
     threshs_R = [1.0, 2.0, 3.0, 5.0, 2.0, 5.0, 10.0]
     for th_t, th_R in zip(threshs_t, threshs_R):
         ratio = np.mean((errors_t < th_t) & (errors_R < th_R))
-        out += f"\n\t{th_t*100:.0f}cm, {th_R:.0f}deg : {ratio*100:.2f}%"
+        out += f"\n\t{th_t * 100:.0f}cm, {th_R:.0f}deg : {ratio * 100:.2f}%"
     logger.info(out)

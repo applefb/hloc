@@ -48,10 +48,10 @@ def get_descriptors(names, path, name2idx=None, key="global_descriptor"):
 
 
 def pairs_from_score_matrix(
-    scores: torch.Tensor,
-    invalid: np.array,
-    num_select: int,
-    min_score: Optional[float] = None,
+        scores: torch.Tensor,
+        invalid: np.array,
+        num_select: int,
+        min_score: Optional[float] = None,
 ):
     assert scores.shape == invalid.shape
     if isinstance(scores, np.ndarray):
@@ -72,15 +72,15 @@ def pairs_from_score_matrix(
 
 
 def main(
-    descriptors,
-    output,
-    num_matched,
-    query_prefix=None,
-    query_list=None,
-    db_prefix=None,
-    db_list=None,
-    db_model=None,
-    db_descriptors=None,
+        descriptors,
+        output,
+        num_matched,
+        query_prefix=None,
+        query_list=None,
+        db_prefix=None,
+        db_list=None,
+        db_model=None,
+        db_descriptors=None,
 ):
     logger.info("Extracting image pairs from a retrieval database.")
 
@@ -104,9 +104,9 @@ def main(
     query_names = parse_names(query_prefix, query_list, query_names_h5)
 
     print('****************************', name2db)
-    print('****************************' ,db_names)
+    print('****************************', db_names)
     print('================', len(db_names))
-    print('****************************' ,query_names)
+    print('****************************', query_names)
     print('================', len(query_names))
     device = "cuda" if torch.cuda.is_available() else "cpu"
     db_desc = get_descriptors(db_names, db_descriptors, name2db)

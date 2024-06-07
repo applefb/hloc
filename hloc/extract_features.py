@@ -140,13 +140,13 @@ confs = {
 
 def resize_image(image, size, interp):
     if interp.startswith("cv2_"):
-        interp = getattr(cv2, "INTER_" + interp[len("cv2_") :].upper())
+        interp = getattr(cv2, "INTER_" + interp[len("cv2_"):].upper())
         h, w = image.shape[:2]
         if interp == cv2.INTER_AREA and (w < size[0] or h < size[1]):
             interp = cv2.INTER_LINEAR
         resized = cv2.resize(image, size, interpolation=interp)
     elif interp.startswith("pil_"):
-        interp = getattr(PIL.Image, interp[len("pil_") :].upper())
+        interp = getattr(PIL.Image, interp[len("pil_"):].upper())
         resized = PIL.Image.fromarray(image.astype(np.uint8))
         resized = resized.resize(size, resample=interp)
         resized = np.asarray(resized, dtype=image.dtype)
@@ -196,7 +196,7 @@ class ImageDataset(torch.utils.data.Dataset):
         size = image.shape[:2][::-1]
 
         if self.conf.resize_max and (
-            self.conf.resize_force or max(size) > self.conf.resize_max
+                self.conf.resize_force or max(size) > self.conf.resize_max
         ):
             scale = self.conf.resize_max / max(size)
             size_new = tuple(int(round(x * scale)) for x in size)
@@ -224,9 +224,11 @@ class ImageDataset(torch.utils.data.Dataset):
 
 
 import time
+
+
 @torch.no_grad()
 def extract_init(
-    conf: Dict,
+        conf: Dict,
 
 ) -> Path:
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -234,18 +236,21 @@ def extract_init(
     model = Model(conf["model"]).eval().to(device)
     return model
 
+
 import time
 import pdb
+
+
 @torch.no_grad()
 def main(
-    conf: Dict,
-    image_dir: Path,
-    export_dir: Optional[Path] = None,
-    as_half: bool = True,
-    image_list: Optional[Union[Path, List[str]]] = None,
-    feature_path: Optional[Path] = None,
-    overwrite: bool = False,
-    model=None
+        conf: Dict,
+        image_dir: Path,
+        export_dir: Optional[Path] = None,
+        as_half: bool = True,
+        image_list: Optional[Union[Path, List[str]]] = None,
+        feature_path: Optional[Path] = None,
+        overwrite: bool = False,
+        model=None
 ) -> Path:
     logger.info(
         "Extracting local features with configuration:" f"\n{pprint.pformat(conf)}"
@@ -262,8 +267,6 @@ def main(
     if len(dataset.names) == 0:
         logger.info("Skipping the extraction.")
         return feature_path
-    
-
 
     # pdb.set_trace()
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -271,9 +274,8 @@ def main(
     # Model = dynamic_load(extractors, conf["model"]["name"])
     # model = Model(conf["model"]).eval().to(device)
 
-
-    loader = torch.utils.data.DataLoader(               #0.09ms
-        dataset, batch_size=1,num_workers=0, shuffle=False, pin_memory=True
+    loader = torch.utils.data.DataLoader(  # 0.09ms
+        dataset, batch_size=1, num_workers=0, shuffle=False, pin_memory=True
     )
 
     # pdb.set_trace()
@@ -343,13 +345,13 @@ def main(
 
 @torch.no_grad()
 def old_main(
-    conf: Dict,
-    image_dir: Path,
-    export_dir: Optional[Path] = None,
-    as_half: bool = True,
-    image_list: Optional[Union[Path, List[str]]] = None,
-    feature_path: Optional[Path] = None,
-    overwrite: bool = False,
+        conf: Dict,
+        image_dir: Path,
+        export_dir: Optional[Path] = None,
+        as_half: bool = True,
+        image_list: Optional[Union[Path, List[str]]] = None,
+        feature_path: Optional[Path] = None,
+        overwrite: bool = False,
 ) -> Path:
     logger.info(
         "Extracting local features with configuration:" f"\n{pprint.pformat(conf)}"
@@ -372,7 +374,7 @@ def old_main(
     model = Model(conf["model"]).eval().to(device)
 
     loader = torch.utils.data.DataLoader(
-        dataset, batch_size=1,num_workers=0, shuffle=False, pin_memory=True
+        dataset, batch_size=1, num_workers=0, shuffle=False, pin_memory=True
     )
     # pdb.set_trace()
     for idx, data in enumerate(tqdm(loader)):
@@ -422,6 +424,8 @@ def old_main(
 
     logger.info("Finished exporting features.")
     return feature_path
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--image_dir", type=Path, required=True)
