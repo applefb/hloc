@@ -5,7 +5,10 @@ __pycache__
 *.egg-info
 .ipynb_checkpoints
 outputs/
-datasets/*
-!datasets/sacre_coeur/
+#datasets/*
+#!datasets/sacre_coeur/
 !datasets/jet18/
-datasets/sacre_coeur/query
+datasets/sacre_coeur_test
+datasets/aachenv1
+datasets/images_upright
+
