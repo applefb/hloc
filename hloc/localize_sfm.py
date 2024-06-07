@@ -223,6 +223,7 @@ def main(
     with open(logs_path, "wb") as f:
         pickle.dump(logs, f)
     logger.info("Done!")
+    return cam_from_world
 
 
 if __name__ == "__main__":

@@ -103,6 +103,11 @@ def main(
         raise ValueError("Could not find any database image.")
     query_names = parse_names(query_prefix, query_list, query_names_h5)
 
+    print('****************************', name2db)
+    print('****************************' ,db_names)
+    print('================', len(db_names))
+    print('****************************' ,query_names)
+    print('================', len(query_names))
     device = "cuda" if torch.cuda.is_available() else "cpu"
     db_desc = get_descriptors(db_names, db_descriptors, name2db)
     query_desc = get_descriptors(query_names, descriptors)

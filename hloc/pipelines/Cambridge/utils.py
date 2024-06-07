@@ -90,6 +90,172 @@ def create_query_list_with_intrinsics(
         f.write("\n".join(data))
 
 
+
+def create_query_list_with_fixed_intrinsics(
+    model, out, list_file=None, ext=".bin", image_dir=None
+):
+    """Create a list of query images with intrinsics from the colmap model."""
+    if ext == ".bin":
+        images = read_images_binary(model / "images.bin")
+        cameras = read_cameras_binary(model / "cameras.bin")
+    else:
+        images = read_images_text(model / "images.txt")
+        cameras = read_cameras_text(model / "cameras.txt")
+
+    name2id = {image.name: i for i, image in images.items()}
+    print('create_query_list_with_fixed_intrinsics      name2id   ============              ',name2id)
+    if list_file is None:
+        names = list(name2id)
+    else:
+        with open(list_file, "r") as f:
+            names = f.read().rstrip().split("\n")
+    data = []
+    for name in names:
+        image = images[1]
+        camera = cameras[image.camera_id]
+        w, h, params = camera.width, camera.height, camera.params
+
+        if image_dir is not None:
+            # Check the original image size and rescale the camera intrinsics
+            img = cv2.imread(str(image_dir / name))
+            assert img is not None, image_dir / name
+            h_orig, w_orig = img.shape[:2]
+            assert camera.model == "SIMPLE_RADIAL"
+            sx = w_orig / w
+            sy = h_orig / h
+            assert sx == sy, (sx, sy)
+            w, h = w_orig, h_orig
+            params = params * np.array([sx, sx, sy, 1.0])
+
+        p = [name, camera.model, w, h] + params.tolist()
+        data.append(" ".join(map(str, p)))
+    with open(out, "w") as f:
+        f.write("\n".join(data))
+
+
+def create_query_list_with_fixed_intrinsics_use_imagedir(
+    model, out, list_file=None, ext=".bin", image_dir=None
+):
+    import os
+    import glob
+    """Create a list of query images with intrinsics from the colmap model."""
+    if ext == ".bin":
+        images = read_images_binary(model / "images.bin")
+        cameras = read_cameras_binary(model / "cameras.bin")
+    else:
+        images = read_images_text(model / "images.txt")
+        cameras = read_cameras_text(model / "cameras.txt")
+
+    name2id = {image.name: i for i, image in images.items()}
+    print('create_query_list_with_fixed_intrinsics      name2id   ============              ',name2id)
+    if image_dir is not None:
+        # 检查目录是否存在
+        if not os.path.exists(image_dir):
+            print(f"目录 '{image_dir}' 不存在")
+            names = []
+        else:
+        # 使用 glob 模块匹配目录下的所有图片文件
+            image_filenames = glob.glob(os.path.join(image_dir, '*.jpg'))  # 假设你只想获取 jpg 格式的图片文件，可根据需求修改
+            # 获取文件名部分
+            names = [os.path.basename(file) for file in image_filenames]
+    data = []
+    for name in names:
+        image = images[1]
+        camera = cameras[image.camera_id]
+        w, h, params = camera.width, camera.height, camera.params
+
+        # if image_dir is not None:
+        #     # Check the original image size and rescale the camera intrinsics
+        #     img = cv2.imread(str(image_dir / name))
+        #     assert img is not None, image_dir / name
+        #     h_orig, w_orig = img.shape[:2]
+        #     assert camera.model == "SIMPLE_RADIAL"
+        #     sx = w_orig / w
+        #     sy = h_orig / h
+        #     assert sx == sy, (sx, sy)
+        #     w, h = w_orig, h_orig
+        #     params = params * np.array([sx, sx, sy, 1.0])
+
+        p = [name, camera.model, w, h] + params.tolist()
+        data.append(" ".join(map(str, p)))
+    with open(out, "w") as f:
+        f.write("\n".join(data))
+    return camera
+
+
+
+def create_query_list_with_fixed_intrinsics_one_image(
+    model, out, list_file=None, ext=".bin"
+):
+    import os
+    import glob
+    """Create a list of query images with intrinsics from the colmap model."""
+    if ext == ".bin":
+        images = read_images_binary(model / "images.bin")
+        cameras = read_cameras_binary(model / "cameras.bin")
+    else:
+        images = read_images_text(model / "images.txt")
+        cameras = read_cameras_text(model / "cameras.txt")
+
+    name2id = {image.name: i for i, image in images.items()}
+    print('create_query_list_with_fixed_intrinsics      name2id   ============              ',name2id)
+
+    data = []
+    for name in list_file:
+        image = images[1]
+        camera = cameras[image.camera_id]
+        w, h, params = camera.width, camera.height, camera.params
+
+        # if image_dir is not None:
+        #     # Check the original image size and rescale the camera intrinsics
+        #     img = cv2.imread(str(image_dir / name))
+        #     assert img is not None, image_dir / name
+        #     h_orig, w_orig = img.shape[:2]
+        #     assert camera.model == "SIMPLE_RADIAL"
+        #     sx = w_orig / w
+        #     sy = h_orig / h
+        #     assert sx == sy, (sx, sy)
+        #     w, h = w_orig, h_orig
+        #     params = params * np.array([sx, sx, sy, 1.0])
+
+        p = [name, camera.model, w, h] + params.tolist()
+        data.append(" ".join(map(str, p)))
+    with open(out, "w") as f:
+        f.write("\n".join(data))
+    return camera
+
+
+
+def create_query_list_with_another_intrinsics_one_image(
+    camera, out, list_file=None
+):
+    import os
+    import glob
+    """Create a list of query images with intrinsics from the colmap model."""
+    data = []
+    for name in list_file:
+
+
+        w, h, params = camera.width, camera.height, camera.params
+
+        # if image_dir is not None:
+        #     # Check the original image size and rescale the camera intrinsics
+        #     img = cv2.imread(str(image_dir / name))
+        #     assert img is not None, image_dir / name
+        #     h_orig, w_orig = img.shape[:2]
+        #     assert camera.model == "SIMPLE_RADIAL"
+        #     sx = w_orig / w
+        #     sy = h_orig / h
+        #     assert sx == sy, (sx, sy)
+        #     w, h = w_orig, h_orig
+        #     params = params * np.array([sx, sx, sy, 1.0])
+
+        p = [name, "SIMPLE_RADIAL", w, h] + params.tolist()
+        data.append(" ".join(map(str, p)))
+    with open(out, "w") as f:
+        f.write("\n".join(data))
+    return camera
+
 def evaluate(model, results, list_file=None, ext=".bin", only_localized=False):
     predictions = {}
     with open(results, "r") as f:

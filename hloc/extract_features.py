@@ -107,7 +107,7 @@ confs = {
         "output": "feats-disk",
         "model": {
             "name": "disk",
-            "max_keypoints": 5000,
+            "max_keypoints": 300,
         },
         "preprocessing": {
             "grayscale": False,
@@ -218,8 +218,131 @@ class ImageDataset(torch.utils.data.Dataset):
         return len(self.names)
 
 
+# Model = dynamic_load(extractors, 'netvlad')    #一句话占用380ms
+#
+# model = Model({"name": "netvlad"}).eval().to("cuda")               #一句话占用3800ms
+
+
+import time
+@torch.no_grad()
+def extract_init(
+    conf: Dict,
+
+) -> Path:
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    Model = dynamic_load(extractors, conf["model"]["name"])
+    model = Model(conf["model"]).eval().to(device)
+    return model
+
+import time
+import pdb
 @torch.no_grad()
 def main(
+    conf: Dict,
+    image_dir: Path,
+    export_dir: Optional[Path] = None,
+    as_half: bool = True,
+    image_list: Optional[Union[Path, List[str]]] = None,
+    feature_path: Optional[Path] = None,
+    overwrite: bool = False,
+    model=None
+) -> Path:
+    logger.info(
+        "Extracting local features with configuration:" f"\n{pprint.pformat(conf)}"
+    )
+
+    dataset = ImageDataset(image_dir, conf["preprocessing"], image_list)
+    if feature_path is None:
+        feature_path = Path(export_dir, conf["output"] + ".h5")
+    feature_path.parent.mkdir(exist_ok=True, parents=True)
+    skip_names = set(
+        list_h5_names(feature_path) if feature_path.exists() and not overwrite else ()
+    )
+    dataset.names = [n for n in dataset.names if n not in skip_names]
+    if len(dataset.names) == 0:
+        logger.info("Skipping the extraction.")
+        return feature_path
+    
+
+
+    # pdb.set_trace()
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    # Model = dynamic_load(extractors, conf["model"]["name"])
+    # model = Model(conf["model"]).eval().to(device)
+
+
+    loader = torch.utils.data.DataLoader(               #0.09ms
+        dataset, batch_size=1,num_workers=0, shuffle=False, pin_memory=True
+    )
+
+    # pdb.set_trace()
+
+    for idx, data in enumerate(tqdm(loader)):
+        start_time = time.time()
+        name = dataset.names[idx]
+        pred = model({"image": data["image"].to(device, non_blocking=True)})
+        pred = {k: v[0].cpu().numpy() for k, v in pred.items()}
+
+        pred["image_size"] = original_size = data["original_size"][0].numpy()
+        if "keypoints" in pred:
+            size = np.array(data["image"].shape[-2:][::-1])
+            scales = (original_size / size).astype(np.float32)
+            pred["keypoints"] = (pred["keypoints"] + 0.5) * scales[None] - 0.5
+            if "scales" in pred:
+                pred["scales"] *= scales.mean()
+            # add keypoint uncertainties scaled to the original resolution
+            uncertainty = getattr(model, "detection_noise", 1) * scales.mean()
+
+        if as_half:
+            for k in pred:
+                dt = pred[k].dtype
+                if (dt == np.float32) and (dt != np.float16):
+                    pred[k] = pred[k].astype(np.float16)
+
+        # # 定义保存特征数据的函数
+        # feature_txt = Path(conf["output"] + ".txt")
+        # with open(str(feature_txt), "a") as f:
+        #     for key, value in pred.items():
+        #         f.write(f"{key}:{value}\n")
+        #
+        #         if "keypoints" in pred:
+        #             f.write(uncertainty.__str__())
+
+        with h5py.File(str(feature_path), "a", libver="latest") as fd:
+            try:
+                if name in fd:
+                    del fd[name]
+                grp = fd.create_group(name)
+                for k, v in pred.items():
+                    grp.create_dataset(k, data=v)
+                if "keypoints" in pred:
+                    grp["keypoints"].attrs["uncertainty"] = uncertainty
+            except OSError as error:
+                if "No space left on device" in error.args[0]:
+                    logger.error(
+                        "Out of disk space: storing features on disk can take "
+                        "significant space, did you enable the as_half flag?"
+                    )
+                    del grp, fd[name]
+                raise error
+
+        del pred
+        # del pred
+        torch.cuda.empty_cache()  # 释放显存
+        del data
+        end_time = time.time()
+        # pdb.set_trace()
+        execution_time = (end_time - start_time) * 1000  # 将秒转换为毫秒
+        # print("for idx, data in enumerate(tqdm(loader)):  execution time:", execution_time, "milliseconds")
+
+    logger.info("Finished exporting features.")
+    torch.cuda.empty_cache()
+    return feature_path
+
+
+@torch.no_grad()
+def old_main(
     conf: Dict,
     image_dir: Path,
     export_dir: Optional[Path] = None,
@@ -249,8 +372,9 @@ def main(
     model = Model(conf["model"]).eval().to(device)
 
     loader = torch.utils.data.DataLoader(
-        dataset, num_workers=1, shuffle=False, pin_memory=True
+        dataset, batch_size=1,num_workers=0, shuffle=False, pin_memory=True
     )
+    # pdb.set_trace()
     for idx, data in enumerate(tqdm(loader)):
         name = dataset.names[idx]
         pred = model({"image": data["image"].to(device, non_blocking=True)})
@@ -289,13 +413,15 @@ def main(
                     )
                     del grp, fd[name]
                 raise error
-
+        # pdb.set_trace()
+        # del pred
         del pred
+        torch.cuda.empty_cache()  # 释放显存
+        del data
+        # pdb.set_trace()
 
     logger.info("Finished exporting features.")
     return feature_path
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--image_dir", type=Path, required=True)
