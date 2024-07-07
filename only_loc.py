@@ -42,8 +42,7 @@ def get_image_filenames(directory):
 
 # images = Path("datasets/sacre_coeur_test")
 colmap_images = Path("datasets/jet18/all_images/colmap_images")
-query_images = Path("datasets/jet18/all_images/query_123_inverse")
-all_images = Path("datasets/jet18/all_images")
+query_images = Path("datasets/jet18/all_images/query")
 my_model = Path("datasets/jet18/my_model")
 outputs = Path("outputs/demo/")
 
@@ -56,6 +55,7 @@ loc_matches = outputs / "loc_matches.h5"
 globals_features = outputs / "globals_features.h5"
 
 feature_conf = extract_features.confs["disk"]
+feature_conf['model']['max_keypoints'] = 5000
 matcher_conf = match_features.confs["disk+lightglue"]
 # list the standard configurations available
 retrieval_conf = extract_features.confs["netvlad"]
