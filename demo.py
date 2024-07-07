@@ -15,7 +15,7 @@ from hloc import (
     localize_sfm
 )
 from hloc.visualization import plot_images, read_image
-from hloc.pipelines.Cambridge.utils import create_query_list_with_fixed_intrinsics, evaluate,create_query_list_with_fixed_intrinsics_use_imagedir
+from hloc.pipelines.Cambridge.utils import create_query_list_with_fixed_intrinsics, evaluate,create_query_list_with_fixed_intrinsics_use_imagedir,create_query_list_with_another_intrinsics_one_image
 from hloc.utils import viz_3d
 from pprint import pformat
 import pdb
@@ -109,13 +109,28 @@ if __name__ == "__main__":
     # pdb.set_trace()
 
     query_list = outputs / 'query_list_with_intrinsics.txt'
+    import pycolmap
+    # camera = pycolmap.Camera(
+    #     model='SIMPLE_RADIAL',
+    #     width=1280,
+    #     height=720,
+    #     params=[695.47427324616319, 640.0, 360.0, -0.069179723657704695],
+    # )
+    camera = pycolmap.Camera(
+        model='SIMPLE_RADIAL',
+        width=3648,
+        height=2736,
+        params=[2851.0370702346609, 1824.0, 1368.0, 0.026471889620124405],
+    )
+
     # query_list_my = outputs / 'query_list_my.txt'
     # test_list = my_model / 'list_test.txt'
     # 生成  query_list_with_intrinsics.txt
     # 这一步是在colmap模型中查询 要重定位图片的相机内参，这不就是要求，colmap模型中必须要有需要查询的图片吗？
     # 我重写了这个函数，这里我全部用第一张图片的内参，代替，
     # create_query_list_with_fixed_intrinsics(my_model, query_list, test_list)
-    create_query_list_with_fixed_intrinsics_use_imagedir(my_model, query_list, image_dir=query_images)
+    # create_query_list_with_fixed_intrinsics_use_imagedir(my_model, query_list, image_dir=query_images)
+    create_query_list_with_another_intrinsics_one_image(camera,query_list,image_dir=query_images)
     results = outputs / "loc.txt"  # the result file
 
     loc_result =  localize_sfm.main(
@@ -145,9 +160,9 @@ if __name__ == "__main__":
         camera = reconstruction.cameras[first_key]
     # camera = pycolmap.Camera(
     #     model='SIMPLE_RADIAL',
-    #     width=1024,
-    #     height=768,
-    #     params=[884.90, 512.0, 384.0, -0.002203697391591438],
+    #     width=3648,
+    #     height=2736,
+    #     params=[2851.0370702346609, 1824.0, 1368.0, 0.026471889620124405],
     # )
     # 1024 768 884.901026713473 512.0 384.0 -0.002203697391591438
         viz_3d.plot_camera_colmap(

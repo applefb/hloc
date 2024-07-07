@@ -223,32 +223,59 @@ def create_query_list_with_fixed_intrinsics_one_image(
     return camera
 
 
+# def create_query_list_with_another_intrinsics_one_image(
+#         camera, out, list_file=None, image_dir= None
+# ):
+#     import os
+#     import glob
+#     """Create a list of query images with intrinsics from the colmap model."""
+#     data = []
+#     for name in list_file:
+#         w, h, params = camera.width, camera.height, camera.params
+#
+#         # if image_dir is not None:
+#         #     # Check the original image size and rescale the camera intrinsics
+#         #     img = cv2.imread(str(image_dir / name))
+#         #     assert img is not None, image_dir / name
+#         #     h_orig, w_orig = img.shape[:2]
+#         #     assert camera.model == "SIMPLE_RADIAL"
+#         #     sx = w_orig / w
+#         #     sy = h_orig / h
+#         #     assert sx == sy, (sx, sy)
+#         #     w, h = w_orig, h_orig
+#         #     params = params * np.array([sx, sx, sy, 1.0])
+#
+#         p = [name, "SIMPLE_RADIAL", w, h] + params.tolist()
+#         data.append(" ".join(map(str, p)))
+#     with open(out, "w") as f:
+#         f.write("\n".join(data))
+#     return camera
+
+import os
+import glob
 def create_query_list_with_another_intrinsics_one_image(
-        camera, out, list_file=None
+        camera, out, list_file=None, image_dir=None
 ):
-    import os
-    import glob
     """Create a list of query images with intrinsics from the colmap model."""
     data = []
-    for name in list_file:
-        w, h, params = camera.width, camera.height, camera.params
 
-        # if image_dir is not None:
-        #     # Check the original image size and rescale the camera intrinsics
-        #     img = cv2.imread(str(image_dir / name))
-        #     assert img is not None, image_dir / name
-        #     h_orig, w_orig = img.shape[:2]
-        #     assert camera.model == "SIMPLE_RADIAL"
-        #     sx = w_orig / w
-        #     sy = h_orig / h
-        #     assert sx == sy, (sx, sy)
-        #     w, h = w_orig, h_orig
-        #     params = params * np.array([sx, sx, sy, 1.0])
+    if list_file is not None:
+        image_names = list_file
+    elif image_dir is not None:
+        image_names = glob.glob(os.path.join(image_dir, '*'))
+        image_names = [os.path.basename(img) for img in image_names]
+    else:
+        raise ValueError("Either list_file or image_dir must be provided.")
+
+    for name in image_names:
+        w, h, params = camera.width, camera.height, camera.params
 
         p = [name, "SIMPLE_RADIAL", w, h] + params.tolist()
         data.append(" ".join(map(str, p)))
+
     with open(out, "w") as f:
         f.write("\n".join(data))
+
     return camera
 
 

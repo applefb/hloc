@@ -208,7 +208,7 @@ def main(
 
     logger.info(f"Localized {len(cam_from_world)} / {len(queries)} images.")
     logger.info(f"Writing poses to {results}...")
-    with open(results, "w") as f:
+    with open(results, "a") as f:
         for query, t in cam_from_world.items():
             qvec = " ".join(map(str, t.rotation.quat[[3, 0, 1, 2]]))
             tvec = " ".join(map(str, t.translation))
