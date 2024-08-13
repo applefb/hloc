@@ -45,7 +45,7 @@ matcher_conf = match_features.confs["disk+lightglue"]
 retrieval_conf = extract_features.confs["netvlad"]
 print(f"Configs for feature extractors:\n{pformat(extract_features.confs)}")
 print(f"Configs for feature matchers:\n{pformat(match_features.confs)}")  # list the standard configurations available
-
+# windows test
 if __name__ == "__main__":
     # pdb.set_trace()
     # 提取local features,  对重建图片,  生成 "features.h5"
