@@ -14,3 +14,4 @@ lightglue
 
 
 Downloading: "https://raw.githubusercontent.com/cvlab-epfl/disk/master/depth-save.pth" to /home/zqk/.cache/torch/hub/checkpoints/depth-save.pth
+Downloading: "https://github.com/cvg/LightGlue/releases/download/v0.1_arxiv/disk_lightglue.pth" to /home/zqk/.cache/torch/hub/checkpoints/disk_lightglue_v0-1_arxiv.pth
