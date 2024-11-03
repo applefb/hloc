@@ -11,3 +11,6 @@ pycolmap>=0.6.0
 kornia>=0.6.11
 gdown
 lightglue 
+
+
+Downloading: "https://raw.githubusercontent.com/cvlab-epfl/disk/master/depth-save.pth" to /home/zqk/.cache/torch/hub/checkpoints/depth-save.pth
